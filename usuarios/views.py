@@ -3,7 +3,7 @@ from django.contrib.messages import constants
 from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User
-
+from django.contrib.auth import authenticate,login
 
 def cadastro(request):
     
@@ -46,6 +46,28 @@ def cadastro(request):
         except:
             return redirect('cadastro')
 
+def logar(request):
+    
+    
+    if request.method == 'GET':
+        return render(request,'login.html')
+            
+    else:
+        
+        usuario=request.POST.get('username')
+        senha=request.POST.get('senha')
+        
+        user=authenticate(username=usuario,password=senha)
+        
+        if user:
+            login(request,user)
+            messages.add_message(request, constants.SUCCESS, 'Usuario logado com sucesso! ')
+            return redirect('cadastro')
+        else:
+            messages.add_message(request, constants.ERROR, 'Usuario e senha não conferem')
+            return render(request,'login.html')
+
+            
             
 
         
