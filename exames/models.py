@@ -11,7 +11,7 @@ class TiposExames(models.Model):
     nome=models.CharField(max_length=60)
     tipo=models.CharField(max_length=1,choices=tipo_choices)
     preco=models.FloatField()
-    Disponivel=models.BooleanField(default=True)
+    disponivel=models.BooleanField(default=True)
     horario_inicial=models.IntegerField()
     horario_final=models.IntegerField()
     
