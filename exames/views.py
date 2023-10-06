@@ -47,4 +47,10 @@ def fechar_pedido(request):
     pedido_exames.save()
     
     messages.add_message(request, constants.SUCCESS, 'Pedido de exame concluído com sucesso')
-    return redirect('ver_pedidos')
+    return redirect('gerenciar_pedidos')
+
+
+def gerenciar_pedidos(request):
+    pedidos_exames=PedidosExames.objects.filter(usuario=request.user)
+    
+    return render(request,'gerenciar_pedidos.html',{'pedidos_exames':pedidos_exames})
