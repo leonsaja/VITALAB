@@ -62,7 +62,7 @@ def cancelar_pedido(request,pedido_id):
     pedido=get_object_or_404(PedidosExames,id=pedido_id)
 
     if not pedido.usuario == request.user:
-        messages.add_message(request,constants.DEBUG,'Esse pedido não é seu')
+        messages.add_message(request,constants.ERROR,'Esse pedido não é seu')
         return redirect('gerenciar_pedidos')
         
     pedido.agendado=False
@@ -74,6 +74,8 @@ def gerenciar_exames(request):
     
    exames=SolicitacaoExame.objects.filter(usuario=request.user)
    
+   print('gerenciar',exames)
+   
    return render(request,'gerenciar_exames.html',{"exames":exames})          
 @login_required
 def permitir_abrir_exame(request,exame_id):
@@ -82,7 +84,7 @@ def permitir_abrir_exame(request,exame_id):
     
     if not  exame.requer_senha:
         if not exame.resultado:
-            messages.add_message(request, constants.DEBUG, 'Não existe resultado em PDF')
+            messages.add_message(request, constants.ERROR, 'Não existe resultado em PDF')
             return redirect('gerenciar_exames')
         return redirect(exame.resultado.url)
     
@@ -100,11 +102,11 @@ def solicitar_senha_exame(request,exame_id):
             
             if exame.senha == senha:
                 if not exame.resultado:
-                    messages.add_message(request, constants.DEBUG, 'Não existe resultado em PDF')
+                    messages.add_message(request, constants.ERROR, 'Não existe resultado em PDF')
                     return redirect('gerenciar_exames')
                 return redirect(exame.resultado.url)
             else:
-                messages.add_message(request, constants.DEBUG, 'Senha Invalida')
+                messages.add_message(request, constants.ERROR, 'Senha Invalida')
                 print('teste10000')
                 return redirect('solicitar_senha_exame',exame.id)
 @login_required
@@ -138,7 +140,7 @@ def acesso_medico(request,token):
     acesso=get_object_or_404(AcessoMedico,token=token)
     
     if acesso.status== 'Expirado':
-        messages.add_message(request,constants.DEBUG,'Ess token já expirado, solicita outro')
+        messages.add_message(request,constants.ERROR,'Ess token já expirado, solicita outro')
         return redirect('login')
     else:
         pedidos=PedidosExames.objects.filter(usuario=acesso.usuario).\

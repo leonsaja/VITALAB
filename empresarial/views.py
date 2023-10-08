@@ -1,5 +1,5 @@
 from django.http import FileResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib.auth.models import User
 from django.db.models import Value
 from django.db.models.functions import Concat
@@ -7,6 +7,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from empresarial.utils import gerar_pdf_exames, gerar_senha_aleatoria
 from exames.models import SolicitacaoExame
 from django.shortcuts import get_object_or_404
+from django.contrib import messages
+from django.contrib.messages import constants
+
 staff_member_required
 def gerenciar_clientes(request):
     clientes=User.objects.filter(is_staff=False)
@@ -42,14 +45,37 @@ def proxy_pdf(request, exame_id):
 
 
 @staff_member_required 
-def gerar_senha(request, exame_id):
+def gerar_senha(request, exame_id): 
     exame = get_object_or_404(SolicitacaoExame,id=exame_id)
 
     if exame.senha:
         # Baixar o documento da senha já existente
         return FileResponse(gerar_pdf_exames(exame.exame.nome, exame.usuario, exame.senha), filename="token.pdf")
     
-    senha = gerar_senha_aleatoria(9)
+    senha = gerar_senha_aleatoria(6)
     exame.senha = senha
     exame.save()
     return FileResponse(gerar_pdf_exames(exame.exame.nome, exame.usuario, exame.senha), filename="token.pdf")
+
+
+@staff_member_required 
+def alterar_dados_exame(request, exame_id):
+    exame = SolicitacaoExame.objects.get(id=exame_id)
+
+    pdf = request.FILES.get('resultado')
+    status = request.POST.get('status')
+    requer_senha = request.POST.get('requer_senha')
+    
+    if requer_senha and (not exame.senha):
+        messages.add_message(request, constants.ERROR, 'Para exigir a senha primeiro crie uma.')
+        return redirect(f'/empresarial/exame_cliente/{exame_id}')
+    
+    exame.requer_senha = True if requer_senha else False
+
+    if pdf:
+        exame.resultado = pdf
+        
+    exame.status = status
+    exame.save()
+    messages.add_message(request, constants.SUCCESS, 'Alteração realizada com sucesso')
+    return redirect ('exame_cliente',exame_id)
